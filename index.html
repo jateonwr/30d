@@ -41,7 +41,7 @@
     </button>
 
     <!-- Slider Container (Hidden by default) -->
-    <div id="sliderWrapper" class="fixed top-20 left-1/2 -translate-x-1/2 w-[280px] z-40 transition-all duration-500 opacity-0 pointer-events-none translate-y-[-30px] scale-95">
+    <div id="sliderWrapper" class="fixed top-20 left-1/2 -translate-x-1/2 w-[260px] sm:w-[280px] z-40 transition-all duration-500 opacity-0 pointer-events-none translate-y-[-30px] scale-95">
         <!-- Scroll Area -->
         <div class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 pb-4">
             <!-- Slides Injected Here -->
@@ -101,19 +101,19 @@
                 wrapper.className = "flex flex-col items-center justify-center w-full";
                 
                 const dayEl = document.createElement('div');
-                dayEl.className = `${scale === 1 ? 'text-3xl md:text-4xl' : 'text-lg'} font-bold`;
+                dayEl.className = `${scale === 1 ? 'text-2xl sm:text-3xl md:text-4xl' : 'text-base sm:text-lg'} font-bold`;
                 dayEl.textContent = data.dayName;
 
                 const dateEl = document.createElement('div');
-                dateEl.className = `${scale === 1 ? 'text-8xl md:text-9xl my-2' : 'text-6xl my-1'} font-bold`;
+                dateEl.className = `${scale === 1 ? 'text-7xl sm:text-8xl md:text-9xl my-1 sm:my-2' : 'text-5xl sm:text-6xl my-1'} font-bold`;
                 dateEl.textContent = data.date;
 
                 const monthEl = document.createElement('div');
-                monthEl.className = `${scale === 1 ? 'text-3xl md:text-5xl' : 'text-xl'} font-bold`;
+                monthEl.className = `${scale === 1 ? 'text-2xl sm:text-3xl md:text-5xl' : 'text-lg sm:text-xl'} font-bold`;
                 monthEl.textContent = data.month;
 
                 const yearEl = document.createElement('div');
-                yearEl.className = `${scale === 1 ? 'text-2xl md:text-4xl mt-1' : 'text-sm'} font-bold`;
+                yearEl.className = `${scale === 1 ? 'text-xl sm:text-2xl md:text-4xl mt-1' : 'text-xs sm:text-sm'} font-bold`;
                 yearEl.textContent = data.year;
 
                 wrapper.appendChild(dayEl);
@@ -165,7 +165,7 @@
                     toggleIcon.style.transform = "rotate(180deg)";
                     
                     // Shift Main Content Down
-                    mainContent.classList.add('translate-y-32'); 
+                    mainContent.classList.add('translate-y-16'); 
                 } else {
                     // Hide Slider
                     sliderWrapper.classList.add('opacity-0', 'pointer-events-none', 'translate-y-[-30px]', 'scale-95');
@@ -173,14 +173,14 @@
                     toggleIcon.style.transform = "rotate(0deg)";
                     
                     // Reset Main Content
-                    mainContent.classList.remove('translate-y-32');
+                    mainContent.classList.remove('translate-y-16');
                 }
             };
 
             // --- BOTTOM MESSAGE ---
             const msgEl = document.createElement('div');
-            msgEl.className = "fixed bottom-16 left-1/2 -translate-x-1/2 text-2xl font-bold opacity-80 flex items-center gap-2 w-max";
-            msgEl.innerHTML = 'Mama, Fighting! <span class="text-3xl">✌️</span>';
+            msgEl.className = "fixed bottom-12 sm:bottom-16 left-1/2 -translate-x-1/2 text-xl sm:text-2xl font-bold opacity-80 flex items-center gap-2 w-max";
+            msgEl.innerHTML = 'Mama, Fighting! <span class="text-2xl sm:text-3xl">✌️</span>';
             document.body.appendChild(msgEl);
 
         })();
