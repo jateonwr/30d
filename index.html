@@ -18,6 +18,13 @@
         body::-webkit-scrollbar {
             display: none;
         }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
         html, body {
             overflow: hidden;
             height: 100%;
@@ -25,8 +32,24 @@
     </style>
 </head>
 <body class="fixed inset-0 w-screen h-dvh flex flex-col justify-center items-center overflow-hidden overscroll-none m-0 p-0 transition-colors duration-500">
+    
+    <!-- Top Toggle Button -->
+    <button id="toggleSliderBtn" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-full p-2 transition-all duration-300">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6 text-black opacity-70">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+        </svg>
+    </button>
+
+    <!-- Slider Container (Hidden by default) -->
+    <div id="sliderWrapper" class="fixed top-16 left-1/2 -translate-x-1/2 w-[240px] z-40 transition-all duration-500 opacity-0 pointer-events-none translate-y-[-20px]">
+        <!-- Scroll Area -->
+        <div class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 pb-4">
+            <!-- Slides Injected Here -->
+        </div>
+    </div>
+
     <main class="text-center p-6 space-y-4">
-        <!-- Result Container -->
+        <!-- Result Container for 30 Days -->
         <div id="result" class="flex flex-col items-center justify-center gap-2">
             <!-- Content injected via JS -->
         </div>
@@ -34,77 +57,124 @@
 
     <script>
         (function() {
-            // 1. Calculate Date + 29 Days (Counting today as Day 1)
-            const date = new Date();
-            date.setDate(date.getDate() + 29);
-
-            // 2. Prepare Data
-            const days = [
-                "Sunday", "Monday", "Tuesday", "Wednesday", 
-                "Thursday", "Friday", "Saturday"
-            ];
-            const months = [
-                "January", "February", "March", "April", 
-                "May", "June", "July", "August", 
-                "September", "October", "November", "December"
-            ];
+            // --- DATA & CONFIG ---
+            const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
             
-            // Standard Thai Day Colors (Softer/Dimmed)
+            // Vibrant Colors (Restored)
             const dayColors = [
-                "bg-red-400",    // Sunday
-                "bg-yellow-300", // Monday
+                "bg-red-500",    // Sunday
+                "bg-yellow-400", // Monday
                 "bg-pink-400",   // Tuesday
-                "bg-green-400",  // Wednesday
-                "bg-orange-400", // Thursday
-                "bg-blue-300",   // Friday
-                "bg-purple-400"  // Saturday
+                "bg-green-500",  // Wednesday
+                "bg-orange-500", // Thursday
+                "bg-blue-500",   // Friday
+                "bg-purple-500"  // Saturday
             ];
 
-            const dayIndex = date.getDay();
-            const dayOfWeek = days[dayIndex];
-            const dayOfMonth = date.getDate();
-            const month = months[date.getMonth()];
-            const year = date.getFullYear(); // A.D.
+            // Helper: Generate Date Info
+            function getFutureDate(targetDayCount) {
+                 const d = new Date();
+                 d.setDate(d.getDate() + (targetDayCount - 1));
+                 const dayIndex = d.getDay();
+                 return {
+                    dayName: days[dayIndex],
+                    date: d.getDate(),
+                    month: months[d.getMonth()],
+                    year: d.getFullYear(),
+                    colorClass: dayColors[dayIndex],
+                    dayCount: targetDayCount
+                };
+            }
 
-            // 3. Set Theme
-            document.body.classList.add(dayColors[dayIndex]);
+            // --- MAIN DISPLAY (30 Days) ---
+            const mainData = getFutureDate(30);
+
+            // 1. Set Main Theme (Body)
+            document.body.classList.add(mainData.colorClass);
             document.body.classList.add('text-black');
 
+            // 2. Render Main Content
+            const container = document.getElementById('result');
+            const createContent = (data, scale = 1, isCard = false) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = "flex flex-col items-center justify-center w-full";
+                
+                const dayEl = document.createElement('div');
+                dayEl.className = `${scale === 1 ? 'text-3xl md:text-4xl' : 'text-lg'} font-bold`;
+                dayEl.textContent = data.dayName;
+
+                const dateEl = document.createElement('div');
+                dateEl.className = `${scale === 1 ? 'text-8xl md:text-9xl my-2' : 'text-6xl my-1'} font-bold`;
+                dateEl.textContent = data.date;
+
+                const monthEl = document.createElement('div');
+                monthEl.className = `${scale === 1 ? 'text-3xl md:text-5xl' : 'text-xl'} font-bold`;
+                monthEl.textContent = data.month;
+
+                const yearEl = document.createElement('div');
+                yearEl.className = `${scale === 1 ? 'text-2xl md:text-4xl mt-1' : 'text-sm'} font-bold`;
+                yearEl.textContent = data.year;
+
+                wrapper.appendChild(dayEl);
+                wrapper.appendChild(dateEl);
+                wrapper.appendChild(monthEl);
+                wrapper.appendChild(yearEl);
+                
+                if (isCard) {
+                    // Label for cards
+                    const label = document.createElement('div');
+                    label.className = "absolute top-2 right-2 text-[10px] font-bold bg-white/40 px-2 py-0.5 rounded text-black/70";
+                    label.textContent = `${data.dayCount} Days`;
+                    wrapper.appendChild(label);
+                    wrapper.style.position = 'relative';
+                }
+
+                return wrapper;
+            };
+
+            container.appendChild(createContent(mainData));
+
+            // --- MANUAL SLIDER (5, 7, 14 Days) ---
+            const sliderWrapper = document.getElementById('sliderWrapper');
+            const sliderScrollArea = sliderWrapper.querySelector('div');
+            
+            [5, 7, 14].forEach(offset => {
+                const data = getFutureDate(offset);
+                
+                const card = document.createElement('div');
+                // Card Styles: Snap item, constant width, colored background
+                card.className = `min-w-full h-[200px] rounded-3xl flex items-center justify-center shadow-lg snap-center ring-4 ring-white/20 ${data.colorClass}`;
+                
+                card.appendChild(createContent(data, 0.5, true));
+                sliderScrollArea.appendChild(card);
+            });
+
+            // Toggle Logic
+            const toggleBtn = document.getElementById('toggleSliderBtn');
+            const toggleIcon = toggleBtn.querySelector('svg');
+            let isSliderVisible = false;
+
+            toggleBtn.onclick = () => {
+                isSliderVisible = !isSliderVisible;
+                if (isSliderVisible) {
+                    sliderWrapper.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-[-20px]');
+                    sliderWrapper.classList.add('opacity-100', 'translate-y-0');
+                    toggleIcon.style.transform = "rotate(180deg)";
+                } else {
+                    sliderWrapper.classList.add('opacity-0', 'pointer-events-none', 'translate-y-[-20px]');
+                    sliderWrapper.classList.remove('opacity-100', 'translate-y-0');
+                    toggleIcon.style.transform = "rotate(0deg)";
+                }
+            };
 
 
-            // Message: "Mama, Fighting! ✌️"
+            // --- BOTTOM MESSAGE ---
             const msgEl = document.createElement('div');
             msgEl.className = "fixed bottom-16 left-1/2 -translate-x-1/2 text-2xl font-bold opacity-80 flex items-center gap-2 w-max";
             msgEl.innerHTML = 'Mama, Fighting! <span class="text-3xl">✌️</span>';
             document.body.appendChild(msgEl);
 
-            // 4. Render
-            const container = document.getElementById('result');
-            
-            // "Day Name (English)"
-            const dayEl = document.createElement('div');
-            dayEl.className = "text-3xl md:text-4xl font-bold";
-            dayEl.textContent = dayOfWeek;
-
-            // "Date"
-            const dateEl = document.createElement('div');
-            dateEl.className = "text-8xl md:text-9xl font-bold my-2";
-            dateEl.textContent = dayOfMonth;
-
-            // "Month (Thai)"
-            const monthEl = document.createElement('div');
-            monthEl.className = "text-3xl md:text-5xl font-bold";
-            monthEl.textContent = month;
-
-            // "Year (A.D.)"
-            const yearEl = document.createElement('div');
-            yearEl.className = "text-2xl md:text-4xl font-bold mt-1";
-            yearEl.textContent = year;
-
-            container.appendChild(dayEl);
-            container.appendChild(dateEl);
-            container.appendChild(monthEl);
-            container.appendChild(yearEl);
         })();
     </script>
 </body>
