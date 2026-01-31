@@ -101,19 +101,19 @@
                 wrapper.className = "flex flex-col items-center justify-center w-full";
                 
                 const dayEl = document.createElement('div');
-                dayEl.className = `${scale === 1 ? 'text-2xl sm:text-3xl md:text-4xl' : 'text-base sm:text-lg'} font-bold`;
+                dayEl.className = `${scale === 1 ? 'text-4xl sm:text-5xl md:text-6xl' : 'text-base sm:text-lg'} font-bold`;
                 dayEl.textContent = data.dayName;
 
                 const dateEl = document.createElement('div');
-                dateEl.className = `${scale === 1 ? 'text-7xl sm:text-8xl md:text-9xl my-1 sm:my-2' : 'text-5xl sm:text-6xl my-1'} font-bold`;
+                dateEl.className = `${scale === 1 ? 'text-[9rem] sm:text-[11rem] md:text-[13rem] leading-none my-1 sm:my-4' : 'text-5xl sm:text-6xl my-1'} font-bold`;
                 dateEl.textContent = data.date;
 
                 const monthEl = document.createElement('div');
-                monthEl.className = `${scale === 1 ? 'text-2xl sm:text-3xl md:text-5xl' : 'text-lg sm:text-xl'} font-bold`;
+                monthEl.className = `${scale === 1 ? 'text-4xl sm:text-5xl md:text-7xl' : 'text-lg sm:text-xl'} font-bold`;
                 monthEl.textContent = data.month;
 
                 const yearEl = document.createElement('div');
-                yearEl.className = `${scale === 1 ? 'text-xl sm:text-2xl md:text-4xl mt-1' : 'text-xs sm:text-sm'} font-bold`;
+                yearEl.className = `${scale === 1 ? 'text-3xl sm:text-4xl md:text-6xl mt-2' : 'text-xs sm:text-sm'} font-bold`;
                 yearEl.textContent = data.year;
 
                 wrapper.appendChild(dayEl);
@@ -182,6 +182,117 @@
             msgEl.className = "fixed bottom-12 sm:bottom-16 left-1/2 -translate-x-1/2 text-xl sm:text-2xl font-bold opacity-80 flex items-center gap-2 w-max";
             msgEl.innerHTML = 'Mama, Fighting! <span class="text-2xl sm:text-3xl">✌️</span>';
             document.body.appendChild(msgEl);
+
+
+            // --- MATH CHALLENGE LOCK ---
+            // Create Overlay
+            const lockOverlay = document.createElement('div');
+            lockOverlay.id = 'lockOverlay';
+            lockOverlay.className = "fixed inset-0 z-[60] bg-black flex flex-col items-center justify-center transition-opacity duration-700";
+            
+            let correctAnswer = 0;
+            let timerInterval;
+            let timeLeft = 10;
+
+            const generateQuestion = () => {
+                const num1 = Math.floor(Math.random() * 90) + 10;
+                const num2 = Math.floor(Math.random() * 90) + 10;
+                correctAnswer = num1 + num2;
+                
+                // Update UI
+                lockOverlay.querySelector('#mathNums').innerHTML = `
+                    <span>${num1}</span>
+                    <span class="text-red-400">+</span>
+                    <span>${num2}</span>
+                `;
+                
+                // Reset Input
+                const input = lockOverlay.querySelector('#mathInput');
+                if(input) {
+                    input.value = '';
+                    input.focus();
+                }
+
+                // Reset Timer
+                clearInterval(timerInterval);
+                timeLeft = 10;
+                updateTimerDisplay();
+                startTimer();
+            };
+
+            const updateTimerDisplay = () => {
+                const timerEl = lockOverlay.querySelector('#timerDisplay');
+                if(timerEl) {
+                    timerEl.textContent = `${timeLeft}s`;
+                    timerEl.className = `text-xl font-bold ${timeLeft <= 3 ? 'text-red-500 animate-pulse' : 'text-white/50'}`;
+                }
+            };
+
+            const startTimer = () => {
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    if (timeLeft <= 0) {
+                        generateQuestion(); // Reroll
+                    }
+                }, 1000);
+            };
+
+            // Content
+            lockOverlay.innerHTML = `
+                <div class="text-white flex flex-col items-center gap-6 p-6">
+                    <h1 class="text-3xl font-light opacity-80 uppercase tracking-widest">Quick Math</h1>
+                    
+                    <div id="timerDisplay" class="text-xl font-bold text-white/50">10s</div>
+
+                    <div id="mathNums" class="text-6xl font-bold flex items-center gap-4">
+                        <!-- Numbers injected -->
+                    </div>
+                    
+                    <div class="w-full max-w-[200px]">
+                        <input type="number" id="mathInput" 
+                            class="w-full bg-transparent border-b-2 border-white/30 text-center text-4xl py-2 focus:outline-none focus:border-white transition-colors text-white placeholder-white/20" 
+                            placeholder="?">
+                    </div>
+                    
+                    <button id="unlockBtn" class="mt-4 px-8 py-2 bg-white text-black rounded-full font-bold text-lg hover:bg-white/90 transition-transform active:scale-95">
+                        Answer
+                    </button>
+                    
+                    <div id="errorMsg" class="text-red-400 font-bold opacity-0 transition-opacity">Wrong Answer!</div>
+                </div>
+            `;
+            document.body.appendChild(lockOverlay);
+
+            // Initial Generate
+            generateQuestion();
+
+            // Logic
+            const input = lockOverlay.querySelector('#mathInput');
+            const btn = lockOverlay.querySelector('#unlockBtn');
+            const err = lockOverlay.querySelector('#errorMsg');
+
+            const checkAnswer = () => {
+                const val = parseInt(input.value);
+                if (val === correctAnswer) {
+                    // Success
+                    clearInterval(timerInterval);
+                    lockOverlay.classList.add('opacity-0', 'pointer-events-none');
+                    setTimeout(() => lockOverlay.remove(), 700); 
+                } else {
+                    // Fail
+                    err.classList.remove('opacity-0');
+                    input.value = '';
+                    input.focus();
+                    setTimeout(() => err.classList.add('opacity-0'), 2000);
+                }
+            };
+
+            btn.onclick = checkAnswer;
+            // Allow Enter key
+            input.onkeydown = (e) => {
+                if (e.key === 'Enter') checkAnswer();
+            };
 
         })();
     </script>
