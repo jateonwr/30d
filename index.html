@@ -224,7 +224,8 @@
                 const timerEl = lockOverlay.querySelector('#timerDisplay');
                 if(timerEl) {
                     timerEl.textContent = `${timeLeft}s`;
-                    timerEl.className = `text-xl font-bold ${timeLeft <= 3 ? 'text-red-500 animate-pulse' : 'text-white/50'}`;
+                    // Matched size/weight to math numbers (text-6xl font-bold)
+                    timerEl.className = `text-6xl font-bold ${timeLeft <= 3 ? 'text-red-500 animate-pulse' : 'text-white/50'}`;
                 }
             };
 
@@ -241,9 +242,9 @@
             // Content
             lockOverlay.innerHTML = `
                 <div class="text-white flex flex-col items-center gap-6 p-6">
-                    <h1 class="text-3xl font-light opacity-80 uppercase tracking-widest">Quick Math</h1>
+                    <h1 class="text-6xl font-bold uppercase tracking-widest">Quick Math</h1>
                     
-                    <div id="timerDisplay" class="text-xl font-bold text-white/50">10s</div>
+                    <div id="timerDisplay" class="text-6xl font-bold text-white/50">10s</div>
 
                     <div id="mathNums" class="text-6xl font-bold flex items-center gap-4">
                         <!-- Numbers injected -->
@@ -251,7 +252,7 @@
                     
                     <div class="w-full max-w-[200px]">
                         <input type="number" id="mathInput" 
-                            class="w-full bg-transparent border-b-2 border-white/30 text-center text-4xl py-2 focus:outline-none focus:border-white transition-colors text-white placeholder-white/20" 
+                            class="w-full bg-transparent border-b-2 border-white/30 text-center text-6xl font-bold py-2 focus:outline-none focus:border-white transition-colors text-white placeholder-white/20" 
                             placeholder="?">
                     </div>
                     
