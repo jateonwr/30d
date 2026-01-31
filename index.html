@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>30 Days Reminder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@100;400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        body::-webkit-scrollbar {
+            display: none;
+        }
+        html, body {
+            overflow: hidden;
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="fixed inset-0 w-screen h-dvh flex flex-col justify-center items-center overflow-hidden overscroll-none m-0 p-0 transition-colors duration-500">
+    <main class="text-center p-6 space-y-4">
+        <!-- Result Container -->
+        <div id="result" class="flex flex-col items-center justify-center gap-2">
+            <!-- Content injected via JS -->
+        </div>
+    </main>
+
+    <script>
+        (function() {
+            // 1. Calculate Date + 29 Days (Counting today as Day 1)
+            const date = new Date();
+            date.setDate(date.getDate() + 29);
+
+            // 2. Prepare Data
+            const days = [
+                "Sunday", "Monday", "Tuesday", "Wednesday", 
+                "Thursday", "Friday", "Saturday"
+            ];
+            const months = [
+                "January", "February", "March", "April", 
+                "May", "June", "July", "August", 
+                "September", "October", "November", "December"
+            ];
+            
+            // Standard Thai Day Colors (Softer/Dimmed)
+            const dayColors = [
+                "bg-red-400",    // Sunday
+                "bg-yellow-300", // Monday
+                "bg-pink-400",   // Tuesday
+                "bg-green-400",  // Wednesday
+                "bg-orange-400", // Thursday
+                "bg-blue-300",   // Friday
+                "bg-purple-400"  // Saturday
+            ];
+
+            const dayIndex = date.getDay();
+            const dayOfWeek = days[dayIndex];
+            const dayOfMonth = date.getDate();
+            const month = months[date.getMonth()];
+            const year = date.getFullYear(); // A.D.
+
+            // 3. Set Theme
+            document.body.classList.add(dayColors[dayIndex]);
+            document.body.classList.add('text-black');
+
+
+
+            // Message: "Mama, Fighting! ✌️"
+            const msgEl = document.createElement('div');
+            msgEl.className = "fixed bottom-16 left-1/2 -translate-x-1/2 text-2xl font-bold opacity-80 flex items-center gap-2 w-max";
+            msgEl.innerHTML = 'Mama, Fighting! <span class="text-3xl">✌️</span>';
+            document.body.appendChild(msgEl);
+
+            // 4. Render
+            const container = document.getElementById('result');
+            
+            // "Day Name (English)"
+            const dayEl = document.createElement('div');
+            dayEl.className = "text-3xl md:text-4xl font-bold";
+            dayEl.textContent = dayOfWeek;
+
+            // "Date"
+            const dateEl = document.createElement('div');
+            dateEl.className = "text-8xl md:text-9xl font-bold my-2";
+            dateEl.textContent = dayOfMonth;
+
+            // "Month (Thai)"
+            const monthEl = document.createElement('div');
+            monthEl.className = "text-3xl md:text-5xl font-bold";
+            monthEl.textContent = month;
+
+            // "Year (A.D.)"
+            const yearEl = document.createElement('div');
+            yearEl.className = "text-2xl md:text-4xl font-bold mt-1";
+            yearEl.textContent = year;
+
+            container.appendChild(dayEl);
+            container.appendChild(dateEl);
+            container.appendChild(monthEl);
+            container.appendChild(yearEl);
+        })();
+    </script>
+</body>
+</html>
