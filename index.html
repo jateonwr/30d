@@ -34,21 +34,21 @@
 <body class="fixed inset-0 w-screen h-dvh flex flex-col justify-center items-center overflow-hidden overscroll-none m-0 p-0 transition-colors duration-500">
     
     <!-- Top Toggle Button -->
-    <button id="toggleSliderBtn" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-full p-2 transition-all duration-300">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6 text-black opacity-70">
+    <button id="toggleSliderBtn" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-full p-2 transition-all duration-300 shadow-lg ring-1 ring-white/30">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6 text-black">
             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
         </svg>
     </button>
 
     <!-- Slider Container (Hidden by default) -->
-    <div id="sliderWrapper" class="fixed top-16 left-1/2 -translate-x-1/2 w-[240px] z-40 transition-all duration-500 opacity-0 pointer-events-none translate-y-[-20px]">
+    <div id="sliderWrapper" class="fixed top-20 left-1/2 -translate-x-1/2 w-[280px] z-40 transition-all duration-500 opacity-0 pointer-events-none translate-y-[-30px] scale-95">
         <!-- Scroll Area -->
         <div class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 pb-4">
             <!-- Slides Injected Here -->
         </div>
     </div>
 
-    <main class="text-center p-6 space-y-4">
+    <main class="text-center p-6 space-y-4 transition-all duration-500">
         <!-- Result Container for 30 Days -->
         <div id="result" class="flex flex-col items-center justify-center gap-2">
             <!-- Content injected via JS -->
@@ -61,7 +61,7 @@
             const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
             const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
             
-            // Vibrant Colors (Restored)
+            // Vibrant Colors
             const dayColors = [
                 "bg-red-500",    // Sunday
                 "bg-yellow-400", // Monday
@@ -143,8 +143,8 @@
                 const data = getFutureDate(offset);
                 
                 const card = document.createElement('div');
-                // Card Styles: Snap item, constant width, colored background
-                card.className = `min-w-full h-[200px] rounded-3xl flex items-center justify-center shadow-lg snap-center ring-4 ring-white/20 ${data.colorClass}`;
+                // Card Styles: 180px height, snap center, no shadow/ring
+                card.className = `min-w-full h-[180px] rounded-3xl flex items-center justify-center snap-center ${data.colorClass}`;
                 
                 card.appendChild(createContent(data, 0.5, true));
                 sliderScrollArea.appendChild(card);
@@ -153,21 +153,29 @@
             // Toggle Logic
             const toggleBtn = document.getElementById('toggleSliderBtn');
             const toggleIcon = toggleBtn.querySelector('svg');
+            const mainContent = document.querySelector('main');
             let isSliderVisible = false;
 
             toggleBtn.onclick = () => {
                 isSliderVisible = !isSliderVisible;
                 if (isSliderVisible) {
-                    sliderWrapper.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-[-20px]');
-                    sliderWrapper.classList.add('opacity-100', 'translate-y-0');
+                    // Show Slider
+                    sliderWrapper.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-[-30px]', 'scale-95');
+                    sliderWrapper.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto', 'scale-100');
                     toggleIcon.style.transform = "rotate(180deg)";
+                    
+                    // Shift Main Content Down
+                    mainContent.classList.add('translate-y-32'); 
                 } else {
-                    sliderWrapper.classList.add('opacity-0', 'pointer-events-none', 'translate-y-[-20px]');
-                    sliderWrapper.classList.remove('opacity-100', 'translate-y-0');
+                    // Hide Slider
+                    sliderWrapper.classList.add('opacity-0', 'pointer-events-none', 'translate-y-[-30px]', 'scale-95');
+                    sliderWrapper.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto', 'scale-100');
                     toggleIcon.style.transform = "rotate(0deg)";
+                    
+                    // Reset Main Content
+                    mainContent.classList.remove('translate-y-32');
                 }
             };
-
 
             // --- BOTTOM MESSAGE ---
             const msgEl = document.createElement('div');
