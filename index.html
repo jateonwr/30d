@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@100;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.4.0/css/all.css">
     <style>
         body {
             font-family: 'Sarabun', sans-serif;
@@ -178,10 +179,20 @@
             };
 
             // --- BOTTOM MESSAGE ---
+            const footerContainer = document.createElement('div');
+            footerContainer.className = "fixed bottom-8 sm:bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-0 w-max";
+            
             const msgEl = document.createElement('div');
-            msgEl.className = "fixed bottom-12 sm:bottom-16 left-1/2 -translate-x-1/2 text-xl sm:text-2xl font-bold opacity-80 flex items-center gap-2 w-max";
+            msgEl.className = "text-xl sm:text-2xl font-bold opacity-80 flex items-center gap-2";
             msgEl.innerHTML = 'Mama, Fighting! <span class="text-2xl sm:text-3xl">✌️</span>';
-            document.body.appendChild(msgEl);
+            
+            const subMsgEl = document.createElement('div');
+            subMsgEl.className = "text-xl sm:text-2xl font-bold opacity-80 flex items-center gap-2 mt-[6px]";
+            subMsgEl.innerHTML = 'PaluiPui <span class="text-2xl sm:text-3xl">🧀</span>';
+            
+            footerContainer.appendChild(msgEl);
+            footerContainer.appendChild(subMsgEl);
+            document.body.appendChild(footerContainer);
 
 
             // --- MATH CHALLENGE LOCK ---
