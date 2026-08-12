@@ -93,7 +93,9 @@ class MahjongGame {
     this.dom.btnLevelsOpen.addEventListener('click', () => this.openLevelsModal());
     this.dom.btnLevelsClose.addEventListener('click', () => this.closeLevelsModal());
 
-    this.dom.btnRulesOpen.addEventListener('click', () => this.openRulesModal());
+    if (this.dom.btnRulesOpen) {
+      this.dom.btnRulesOpen.addEventListener('click', () => this.openRulesModal());
+    }
     this.dom.btnRulesClose.addEventListener('click', () => this.closeRulesModal());
 
     this.dom.btnAudioToggle.addEventListener('click', () => {
@@ -775,7 +777,7 @@ class MahjongGame {
         </div>
         <div class="mt-3 pt-2 border-t border-wood-700/60 flex items-center justify-between text-[11px]">
           <span class="text-amber-300/80">คะแนนสูงสุด: ${high > 0 ? high.toLocaleString() : '-'}</span>
-          ${isLocked ? '<span class="text-red-400 font-bold">🔒 ล็อค</span>' : '<span class="text-gold-400 font-bold">เล่น ▶</span>'}
+          ${isLocked ? '<span class="text-red-400 font-bold">🔒 ล็อก</span>' : '<span class="text-gold-400 font-bold">เล่น ▶</span>'}
         </div>
       `;
 

@@ -35,7 +35,7 @@ const LEVELS_DATA = [
   // --- LEVEL 2: JADE GATE (44 Tiles / 22 Pairs) ---
   {
     id: 2,
-    name: 'ด่าน 2: ด่านประตูหยก',
+    name: 'ด่าน 2: ประตูหยก',
     subtitle: 'Jade Gate',
     difficulty: 'ง่าย+',
     difficultyColor: 'bg-emerald-600',
