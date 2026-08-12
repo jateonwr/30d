@@ -37,15 +37,29 @@
     <!-- Top Right Mahjong Tile Button -->
     <a href="mahjong.html" id="mahjongTileBtn" 
        class="fixed top-4 right-4 sm:top-5 sm:right-5 z-[70] group flex flex-col items-center transition-all duration-300 active:scale-95">
-        <!-- 3D Mahjong Tile Component -->
-        <div class="relative w-12 h-14 sm:w-14 sm:h-16 rounded-xl bg-emerald-900 border-2 border-emerald-600/70 
-                    shadow-[0_5px_0_0_#064e3b,0_8px_16px_rgba(0,0,0,0.4)] group-hover:shadow-[0_7px_0_0_#064e3b,0_12px_20px_rgba(0,0,0,0.5)] 
-                    group-hover:-translate-y-1 transition-all duration-200 flex items-center justify-center p-1">
-            <!-- Ivory Front Face -->
-            <div class="w-full h-full bg-gradient-to-b from-amber-50 via-amber-100 to-amber-200 rounded-lg 
-                        border border-amber-300/80 shadow-inner flex flex-col items-center justify-center select-none">
-                <span class="text-red-600 font-extrabold text-2xl sm:text-3xl leading-none drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]">🀄</span>
-                <span class="text-[8px] sm:text-[9px] font-black text-emerald-900 tracking-tighter uppercase mt-0.5">MAHJONG</span>
+        <div class="relative flex items-center justify-center">
+            <!-- Back Mahjong Tile (Stacked behind, tilted left 30 degrees from Y-axis) -->
+            <div class="absolute w-12 h-14 sm:w-14 sm:h-16 rounded-xl bg-emerald-950 border-2 border-emerald-700/80 
+                        shadow-[0_4px_10px_rgba(0,0,0,0.5)] flex items-center justify-center p-1
+                        -rotate-[30deg] -translate-x-1.5 -translate-y-4 opacity-90 transition-all duration-300 origin-bottom-right
+                        group-hover:-rotate-[36deg] group-hover:-translate-x-2.5 group-hover:-translate-y-5.5 group-hover:opacity-100">
+                <!-- Ivory Front Face -->
+                <div class="w-full h-full bg-gradient-to-b from-amber-100 via-amber-200 to-amber-300 rounded-lg 
+                            border border-amber-300/70 shadow-inner flex flex-col items-center justify-center select-none">
+                    <span class="text-emerald-700 font-extrabold text-xl sm:text-2xl leading-none drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)]">🀅</span>
+                </div>
+            </div>
+
+            <!-- Front 3D Mahjong Tile Component -->
+            <div class="relative z-10 w-12 h-14 sm:w-14 sm:h-16 rounded-xl bg-emerald-900 border-2 border-emerald-600/70 
+                        shadow-[0_5px_0_0_#064e3b,0_8px_16px_rgba(0,0,0,0.4)] group-hover:shadow-[0_7px_0_0_#064e3b,0_12px_20px_rgba(0,0,0,0.5)] 
+                        group-hover:-translate-y-1 transition-all duration-200 flex items-center justify-center p-1">
+                <!-- Ivory Front Face -->
+                <div class="w-full h-full bg-gradient-to-b from-amber-50 via-amber-100 to-amber-200 rounded-lg 
+                            border border-amber-300/80 shadow-inner flex flex-col items-center justify-center select-none">
+                    <span class="text-red-600 font-extrabold text-2xl sm:text-3xl leading-none drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]">🀄</span>
+                    <span class="text-[8px] sm:text-[9px] font-black text-emerald-900 tracking-tighter uppercase mt-0.5">MAHJONG</span>
+                </div>
             </div>
         </div>
     </a>
