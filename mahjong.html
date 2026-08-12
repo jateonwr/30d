@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="th" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mahjong Solitaire - ธีมคลาสสิกจีนโมเดิร์น</title>
+  <meta name="description" content="เกม Mahjong Solitaire แบบด่าน เพิ่มความยาก สไตล์คลาสสิกจีนโมเดิร์น (ไม้/หยก/ทอง) เล่นได้บนมือถือและคอมพิวเตอร์">
+  
+  <!-- Google Fonts: Maitree (Modern Chinese Serif), Ma Shan Zheng, Noto Serif SC, Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Maitree:wght@500;600;700&family=Noto+Serif+SC:wght@600;700;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS v3 CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            wood: {
+              900: '#140b07',
+              800: '#23120b',
+              700: '#341b10',
+              600: '#4a2818',
+              500: '#643722',
+            },
+            jade: {
+              900: '#072016',
+              800: '#0d3524',
+              700: '#154e36',
+              600: '#1e6b4c',
+              500: '#2a8a63',
+              400: '#3ea87c',
+              100: '#e6f4ed',
+            },
+            gold: {
+              600: '#996515',
+              500: '#c59b27',
+              400: '#e6be44',
+              300: '#f7d774',
+              200: '#fef0a6',
+            }
+          },
+          fontFamily: {
+            chinese: ['"Maitree"', '"Ma Shan Zheng"', '"Noto Serif SC"', 'serif'],
+            serif: ['"Maitree"', '"Noto Serif SC"', 'serif'],
+            sans: ['"Maitree"', '"Plus Jakarta Sans"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Canvas Confetti CDN for victory celebration -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="h-full bg-wood-900 text-amber-100 font-sans select-none overflow-hidden touch-none flex flex-col justify-between">
+
+  <!-- BACKGROUND WOOD PATTERN OVERLAY -->
+  <div class="fixed inset-0 bg-wood-texture opacity-40 pointer-events-none z-0"></div>
+  <div class="fixed inset-0 bg-gradient-to-b from-wood-900/80 via-transparent to-wood-900/90 pointer-events-none z-0"></div>
+
+  <!-- TOP BAR (HEADER) - MOBILE FIRST -->
+  <header class="relative z-20 w-full bg-wood-800/95 border-b border-gold-500/30 px-3 py-2 shadow-lg flex items-center justify-between backdrop-blur-md">
+    <!-- Left: Menu & Sound -->
+    <div class="flex items-center gap-1.5 sm:gap-2 z-10">
+      <a href="index.html" class="btn-icon bg-wood-700/80 hover:bg-wood-600 border border-gold-500/40 text-gold-300 p-2 rounded-lg transition-all active:scale-95 flex items-center gap-1 shadow-md">
+        <svg class="w-5 h-5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+        </svg>
+      </a>
+
+      <button id="btn-audio-toggle" class="btn-icon bg-wood-700/80 hover:bg-wood-600 border border-gold-500/40 text-gold-300 p-2 rounded-lg transition-all active:scale-95 shadow-md">
+        <svg id="icon-sound-on" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+        </svg>
+        <svg id="icon-sound-off" class="w-5 h-5 hidden text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Center: Level Title & Progress Badge (Clickable to open Level Selection Modal) -->
+    <div id="btn-levels-open" 
+         class="absolute left-1/2 -translate-x-1/2 text-center flex flex-col items-center cursor-pointer pointer-events-auto z-20 group transition-all hover:scale-105 active:scale-95">
+      <div class="flex items-center gap-1">
+        <span class="text-xs text-gold-400 group-hover:text-amber-200 font-chinese tracking-wide uppercase">
+          Mahjong Solitaire
+        </span>
+      </div>
+      <h1 id="current-level-title" class="text-sm sm:text-base font-bold text-gold-200 group-hover:text-white font-chinese tracking-wide truncate max-w-[140px] sm:max-w-[220px]">
+        ด่าน 1: ต้นไผ่ฝึกหัด
+      </h1>
+    </div>
+
+    <!-- Right: Stats (Tiles Remaining & Timer) -->
+    <div class="flex items-center gap-1.5 sm:gap-2 text-right z-10">
+      <div class="flex flex-col items-end">
+        <span class="text-[9px] sm:text-[10px] uppercase tracking-wider text-amber-300/70">เหลือไพ่</span>
+        <span id="tiles-remaining" class="text-[11px] sm:text-xs font-bold text-gold-300 bg-wood-900/80 px-1.5 py-0.5 rounded border border-gold-500/30">
+          32 / 32
+        </span>
+      </div>
+      <div class="flex flex-col items-end">
+        <span class="text-[9px] sm:text-[10px] uppercase tracking-wider text-amber-300/70">เวลา</span>
+        <span id="game-timer" class="text-[11px] sm:text-xs font-bold text-amber-200 bg-wood-900/80 px-1.5 py-0.5 rounded border border-gold-500/30 font-sans">
+          00:00
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN GAMEPLAY BOARD AREA (DYNAMIC RESPONSIVE CANVAS CONTAINER) -->
+  <main id="game-viewport" class="relative z-10 flex-1 w-full min-h-0 overflow-hidden flex items-center justify-center p-2 sm:p-4">
+    <!-- Center Board Wrapper that scales dynamically -->
+    <div id="board-container" class="relative transition-transform duration-300 ease-out origin-center">
+      <!-- Tiles rendered dynamically via JS -->
+    </div>
+
+    <!-- Floating Combo Indicator -->
+    <div id="combo-popup" class="pointer-events-none absolute top-12 left-1/2 -translate-x-1/2 opacity-0 transform -translate-y-4 transition-all duration-300 z-30 flex flex-col items-center">
+      <span id="combo-text" class="text-xl sm:text-2xl font-black font-chinese text-amber-300 drop-shadow-[0_2px_8px_rgba(234,179,8,0.8)] tracking-wider">
+        COMBO x2!
+      </span>
+      <span id="combo-score" class="text-xs font-bold text-gold-200">+200 คะแนน</span>
+    </div>
+
+    <!-- Floating Toast Notification -->
+    <div id="toast-message" class="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 opacity-0 transform translate-y-4 transition-all duration-300 z-40 bg-wood-800/95 border border-gold-400/50 text-gold-200 px-4 py-2 rounded-full shadow-2xl text-xs sm:text-sm font-semibold flex items-center gap-2">
+      <span id="toast-icon">💡</span>
+      <span id="toast-text">แนะนำคู่ไพ่ให้แล้ว!</span>
+    </div>
+  </main>
+
+  <!-- BOTTOM CONTROL BAR (THUMB-FRIENDLY FOR MOBILE) -->
+  <footer class="relative z-20 w-full bg-wood-800/95 border-t border-gold-500/30 px-2 py-2 shadow-2xl backdrop-blur-md">
+    <div class="max-w-lg mx-auto grid grid-cols-5 gap-1.5 sm:gap-3">
+      
+      <!-- Undo Button -->
+      <button id="btn-undo" class="flex flex-col items-center justify-center p-1.5 sm:p-2 bg-gradient-to-b from-wood-700 to-wood-800 hover:from-wood-600 hover:to-wood-700 active:scale-95 rounded-xl border border-gold-500/30 text-amber-100 shadow-md transition-all disabled:opacity-40 disabled:pointer-events-none">
+        <svg class="w-5 h-5 text-gold-300 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
+        </svg>
+        <span class="text-[10px] sm:text-xs font-semibold text-amber-200">ย้อนกลับ</span>
+      </button>
+
+      <!-- Hint Button -->
+      <button id="btn-hint" class="flex flex-col items-center justify-center p-1.5 sm:p-2 bg-gradient-to-b from-wood-700 to-wood-800 hover:from-wood-600 hover:to-wood-700 active:scale-95 rounded-xl border border-gold-500/30 text-amber-100 shadow-md transition-all relative">
+        <span id="hint-badge" class="absolute -top-1 -right-1 bg-gold-500 text-wood-900 font-extrabold text-[10px] w-4 h-4 rounded-full flex items-center justify-center shadow">3</span>
+        <svg class="w-5 h-5 text-amber-300 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 01-2 2h-0a2 2 0 01-2-2v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+        </svg>
+        <span class="text-[10px] sm:text-xs font-semibold text-amber-200">คำใบ้</span>
+      </button>
+
+      <!-- Shuffle Button -->
+      <button id="btn-shuffle" class="flex flex-col items-center justify-center p-1.5 sm:p-2 bg-gradient-to-b from-wood-700 to-wood-800 hover:from-wood-600 hover:to-wood-700 active:scale-95 rounded-xl border border-gold-500/30 text-amber-100 shadow-md transition-all">
+        <svg class="w-5 h-5 text-amber-300 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+        </svg>
+        <span class="text-[10px] sm:text-xs font-semibold text-amber-200">สลับไพ่</span>
+      </button>
+
+      <!-- Restart Level Button -->
+      <button id="btn-restart" class="flex flex-col items-center justify-center p-1.5 sm:p-2 bg-gradient-to-b from-wood-700 to-wood-800 hover:from-wood-600 hover:to-wood-700 active:scale-95 rounded-xl border border-gold-500/30 text-amber-100 shadow-md transition-all">
+        <svg class="w-5 h-5 text-gold-300 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        <span class="text-[10px] sm:text-xs font-semibold text-amber-200">เริ่มใหม่</span>
+      </button>
+
+      <!-- Score display button/badge -->
+      <div class="flex flex-col items-center justify-center p-1 sm:p-1.5 bg-wood-900/90 rounded-xl border border-gold-500/40 shadow-inner text-center">
+        <span class="text-[9px] uppercase tracking-wider text-amber-400/80 font-bold">คะแนน</span>
+        <span id="score-display" class="text-xs sm:text-sm font-extrabold text-gold-300 font-sans">0</span>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- LEVEL SELECTION MODAL -->
+  <div id="modal-levels" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="bg-wood-800 border-2 border-gold-500/60 rounded-2xl max-w-lg w-full p-4 sm:p-6 shadow-2xl relative max-h-[90vh] flex flex-col">
+      
+      <!-- Rules Info button (Borderless Icon, Top-Left of modal-levels) -->
+      <button id="btn-rules-open" class="absolute top-5 left-6 text-gold-400 hover:text-white p-1 rounded-lg transition-colors">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </button>
+
+      <!-- Close button -->
+      <button id="btn-levels-close" class="absolute top-3 right-3 text-gold-400 hover:text-white p-1 rounded-lg transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+
+      <div class="text-center mb-4">
+        <h2 class="text-xl sm:text-2xl font-black font-chinese text-gold-300 tracking-wider">
+          🀄 เลือกล่าน (Select Level)
+        </h2>
+      </div>
+
+      <!-- Level Cards Grid (Scrollable) -->
+      <div id="levels-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-y-auto pr-1 flex-1 custom-scrollbar">
+        <!-- Generated dynamically via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- VICTORY CELEBRATION MODAL -->
+  <div id="modal-victory" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="bg-gradient-to-b from-wood-800 via-wood-800 to-wood-900 border-2 border-gold-400 rounded-3xl max-w-sm w-full p-6 text-center shadow-[0_0_50px_rgba(245,158,11,0.3)] relative transform scale-90 transition-transform duration-300">
+      
+      <!-- Crown Icon Header -->
+      <div class="w-16 h-16 mx-auto mb-2 bg-gradient-to-br from-gold-300 to-gold-600 rounded-full flex items-center justify-center shadow-lg border-2 border-amber-100 animate-bounce">
+        <span class="text-3xl">🏆</span>
+      </div>
+
+      <h2 class="text-2xl font-black font-chinese text-gold-300 tracking-wider">
+        ผ่านด่านสำเร็จ!
+      </h2>
+      <p id="victory-level-name" class="text-sm font-semibold text-amber-200/90 mt-1">
+        ด่าน 1: ต้นไผ่ฝึกหัด
+      </p>
+
+      <!-- Star Rating -->
+      <div id="victory-stars" class="flex justify-center gap-2 my-4 text-3xl">
+        <span class="star text-gold-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]">★</span>
+        <span class="star text-gold-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]">★</span>
+        <span class="star text-gold-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]">★</span>
+      </div>
+
+      <!-- Stats Summary Card -->
+      <div class="bg-wood-900/80 border border-gold-500/30 rounded-xl p-3 mb-5 space-y-2 text-xs">
+        <div class="flex justify-between items-center border-b border-wood-700/60 pb-1.5">
+          <span class="text-amber-300/80">เวลาที่ใช้:</span>
+          <span id="victory-time" class="font-extrabold text-gold-200 font-sans text-sm">01:45</span>
+        </div>
+        <div class="flex justify-between items-center border-b border-wood-700/60 pb-1.5">
+          <span class="text-amber-300/80">คะแนนรวม:</span>
+          <span id="victory-score" class="font-extrabold text-gold-300 font-sans text-sm">1,250</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-amber-300/80">คะแนนสูงสุดด่านนี้:</span>
+          <span id="victory-highscore" class="font-extrabold text-amber-400 font-sans text-sm">1,250</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex gap-2">
+        <button id="btn-victory-replay" class="flex-1 py-2.5 bg-wood-700 hover:bg-wood-600 border border-gold-500/40 text-gold-200 font-bold rounded-xl text-xs sm:text-sm transition-all active:scale-95 shadow-md">
+          🔄 เล่นอีกครั้ง
+        </button>
+        <button id="btn-victory-next" class="flex-1 py-2.5 bg-gradient-to-r from-gold-500 to-amber-600 hover:from-gold-400 hover:to-amber-500 text-wood-900 font-black rounded-xl text-xs sm:text-sm transition-all active:scale-95 shadow-lg">
+          ▶ ด่านถัดไป
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- HOW TO PLAY RULES MODAL -->
+  <div id="modal-rules" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="bg-wood-800 border-2 border-gold-500/60 rounded-2xl max-w-md w-full p-5 shadow-2xl relative max-h-[85vh] flex flex-col">
+      
+      <button id="btn-rules-close" class="absolute top-3 right-3 text-gold-400 hover:text-white p-1 rounded-lg">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+
+      <div class="text-center mb-3">
+        <h2 class="text-xl font-black font-chinese text-gold-300">
+          📜 กติกาการเล่น (How to Play)
+        </h2>
+      </div>
+
+      <div class="text-xs sm:text-sm text-amber-100/90 space-y-3 overflow-y-auto pr-1 flex-1 custom-scrollbar">
+        <div class="bg-wood-900/60 p-3 rounded-xl border border-gold-500/20">
+          <h3 class="font-bold text-gold-300 mb-1 flex items-center gap-1.5">
+            <span>🎯</span> จุดประสงค์
+          </h3>
+          <p>จับคู่ไพ่นกกระจอกที่มีลายเหมือนกันเพื่อเคลียร์ไพ่ออกจากกระดานให้หมด!</p>
+        </div>
+
+        <div class="bg-wood-900/60 p-3 rounded-xl border border-gold-500/20">
+          <h3 class="font-bold text-gold-300 mb-1 flex items-center gap-1.5">
+            <span>🔓</span> เงื่อนไขไพ่ที่เลือกได้ (Free Tiles)
+          </h3>
+          <ul class="list-disc list-inside space-y-1 text-amber-200/80">
+            <li>ต้อง <strong>ไม่มีไพ่ใบอื่นซ้อนทับ</strong> อยู่ด้านบน</li>
+            <li>ต้อง <strong>มีฝั่งซ้ายหรือฝั่งขวาว่าง</strong> อย่างน้อย 1 ด้าน (สามารถเลื่อนออกได้)</li>
+          </ul>
+        </div>
+
+        <div class="bg-wood-900/60 p-3 rounded-xl border border-gold-500/20">
+          <h3 class="font-bold text-gold-300 mb-1 flex items-center gap-1.5">
+            <span>🌸</span> ไพ่หมวดพิเศษ
+          </h3>
+          <p>ไพ่ <strong>ฤดูกาล (Seasons)</strong> และ <strong>ดอกไม้ (Flowers)</strong> สามารถจับคู่กับไพ่ใดก็ได้ในหมวดเดียวกัน ไม่จำเป็นต้องหน้าตาเหมือนกันเป๊ะ!</p>
+        </div>
+
+        <div class="bg-wood-900/60 p-3 rounded-xl border border-gold-500/20">
+          <h3 class="font-bold text-gold-300 mb-1 flex items-center gap-1.5">
+            <span>⚡</span> ปุ่มช่วยเหลือ
+          </h3>
+          <p>หากหาคู่ไม่เจอ ให้ใช้ปุ่ม <strong>คำใบ้ (Hint)</strong> หรือ <strong>สลับไพ่ (Shuffle)</strong> เพื่อจัดเรียงตำแหน่งใหม่ได้ตลอดเวลา</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- AUDIO SETTINGS MODAL -->
+  <div id="modal-audio" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="bg-wood-800 border-2 border-gold-500/60 rounded-2xl max-w-xs sm:max-w-sm w-full p-5 sm:p-6 shadow-2xl relative flex flex-col gap-4">
+      
+      <!-- Close button -->
+      <button id="btn-audio-close" class="absolute top-3 right-3 text-gold-400 hover:text-white p-1 rounded-lg transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+
+      <div class="text-center mb-1">
+        <h2 class="text-xl font-black font-chinese text-gold-300 tracking-wider flex items-center justify-center gap-2">
+          <span>🔊</span> ตั้งค่าระบบเสียง
+        </h2>
+      </div>
+
+      <!-- Music Volume Slider (BGM) -->
+      <div class="bg-wood-900/80 p-3.5 rounded-xl border border-gold-500/30 flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <label for="slider-bgm-vol" class="text-xs font-bold text-amber-200 flex items-center gap-1.5">
+            <span>🎵</span> เสียงเพลงบรรเลง
+          </label>
+          <span id="val-bgm-vol" class="text-xs font-extrabold text-gold-300 font-sans">15%</span>
+        </div>
+        <input type="range" id="slider-bgm-vol" min="0" max="100" value="15" 
+               class="w-full h-2 bg-wood-700 rounded-lg appearance-none cursor-pointer accent-amber-400">
+      </div>
+
+      <!-- Sound Effects Volume Slider (SFX) -->
+      <div class="bg-wood-900/80 p-3.5 rounded-xl border border-gold-500/30 flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <label for="slider-sfx-vol" class="text-xs font-bold text-amber-200 flex items-center gap-1.5">
+            <span>🀄</span> เสียงเอฟเฟกต์เกม
+          </label>
+          <span id="val-sfx-vol" class="text-xs font-extrabold text-gold-300 font-sans">60%</span>
+        </div>
+        <input type="range" id="slider-sfx-vol" min="0" max="100" value="60" 
+               class="w-full h-2 bg-wood-700 rounded-lg appearance-none cursor-pointer accent-amber-400">
+      </div>
+
+      <!-- Master Mute Toggle Button -->
+      <button id="btn-audio-master-toggle" class="w-full py-2.5 bg-gradient-to-b from-wood-700 to-wood-800 hover:from-wood-600 hover:to-wood-700 border border-gold-500/40 text-gold-200 font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md mt-1">
+        <span id="icon-master-mute">🔊</span>
+        <span id="text-master-mute">เปิดเสียงอยู่</span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="js/audio.js"></script>
+  <script src="js/tiles.js"></script>
+  <script src="js/layouts.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
