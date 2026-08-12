@@ -113,10 +113,17 @@ class MahjongGame {
     }
 
     if (this.dom.sliderSfxVol) {
+      let previewDebounce = null;
       this.dom.sliderSfxVol.addEventListener('input', (e) => {
         const val = parseInt(e.target.value);
         window.soundEngine.setSfxVolume(val / 100);
         if (this.dom.valSfxVol) this.dom.valSfxVol.textContent = `${val}%`;
+
+        // Real-time audio feedback click when dragging SFX slider
+        if (previewDebounce) clearTimeout(previewDebounce);
+        previewDebounce = setTimeout(() => {
+          window.soundEngine.playClick();
+        }, 60);
       });
     }
 

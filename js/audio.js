@@ -53,9 +53,11 @@ const DIZI_HARMONY = [
 class SoundEngine {
   constructor() {
     this.ctx = null;
+    this.bgmMasterGain = null;
+    this.sfxMasterGain = null;
     this.muted = false;
     this.sfxVolume = 0.6; // 0.0 to 1.0 (default 60%)
-    this.bgmVolume = 0.15; // 0.0 to 1.0 (default 15%)
+    this.bgmVolume = 0.3; // 0.0 to 1.0 (default 30%)
 
     // Load saved volume preferences
     try {
@@ -77,7 +79,7 @@ class SoundEngine {
     // MP3 Audio Background Stream Fallback
     this.audioElement = new Audio('https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3');
     this.audioElement.loop = true;
-    this.audioElement.volume = this.muted ? 0 : this.bgmVolume * 0.4;
+    this.audioElement.volume = this.muted ? 0 : this.bgmVolume;
     this.isMp3Loaded = false;
 
     this.audioElement.addEventListener('canplaythrough', () => {
@@ -90,6 +92,15 @@ class SoundEngine {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (AudioCtx) {
         this.ctx = new AudioCtx();
+
+        // Create Master Gain Nodes for BGM & SFX
+        this.bgmMasterGain = this.ctx.createGain();
+        this.bgmMasterGain.gain.setValueAtTime(this.muted ? 0 : this.bgmVolume, this.ctx.currentTime);
+        this.bgmMasterGain.connect(this.ctx.destination);
+
+        this.sfxMasterGain = this.ctx.createGain();
+        this.sfxMasterGain.gain.setValueAtTime(this.muted ? 0 : this.sfxVolume, this.ctx.currentTime);
+        this.sfxMasterGain.connect(this.ctx.destination);
       }
     }
     if (this.ctx && this.ctx.state === 'suspended') {
@@ -99,6 +110,13 @@ class SoundEngine {
 
   setSfxVolume(vol) {
     this.sfxVolume = Math.max(0, Math.min(1, vol));
+    this.init();
+
+    const targetGain = this.muted ? 0 : this.sfxVolume;
+    if (this.ctx && this.sfxMasterGain) {
+      this.sfxMasterGain.gain.setTargetAtTime(targetGain, this.ctx.currentTime, 0.02);
+    }
+
     try {
       localStorage.setItem('mahjong_sfx_vol', this.sfxVolume);
     } catch (e) {}
@@ -106,9 +124,28 @@ class SoundEngine {
 
   setBgmVolume(vol) {
     this.bgmVolume = Math.max(0, Math.min(1, vol));
+    this.init();
+
+    const targetGain = this.muted ? 0 : this.bgmVolume;
+
+    // Dynamically update HTML5 Audio volume instantly
     if (this.audioElement) {
-      this.audioElement.volume = this.muted ? 0 : this.bgmVolume * 0.4;
+      this.audioElement.volume = targetGain;
     }
+
+    // Dynamically update Web Audio API Master BGM Gain Node
+    if (this.ctx && this.bgmMasterGain) {
+      this.bgmMasterGain.gain.setTargetAtTime(targetGain, this.ctx.currentTime, 0.02);
+    }
+
+    // Auto resume/start BGM if volume raised from 0 and not playing
+    if (this.bgmVolume > 0 && !this.muted && !this.bgmPlaying) {
+      this.startBGM();
+    } else if (this.bgmVolume <= 0 && this.audioElement) {
+      // Keep volume at 0 dynamically
+      this.audioElement.volume = 0;
+    }
+
     try {
       localStorage.setItem('mahjong_bgm_vol', this.bgmVolume);
     } catch (e) {}
@@ -116,12 +153,12 @@ class SoundEngine {
 
   // --- TRADITIONAL CHINESE INSTRUMENTAL BGM ENGINE ---
   startBGM() {
-    if (this.bgmPlaying || this.muted) return;
+    if (this.bgmPlaying || this.muted || this.bgmVolume <= 0) return;
     this.init();
     this.bgmPlaying = true;
 
     if (this.audioElement) {
-      this.audioElement.volume = this.muted ? 0 : this.bgmVolume * 0.4;
+      this.audioElement.volume = this.bgmVolume;
       const playPromise = this.audioElement.play();
       if (playPromise !== undefined) {
         playPromise.then(() => {
@@ -193,14 +230,14 @@ class SoundEngine {
     osc2.type = 'triangle';
     osc2.frequency.setValueAtTime(freq * 2, now);
 
-    const peakVol = 0.045 * this.bgmVolume;
+    const peakVol = 0.15;
     gain.gain.setValueAtTime(0.001, now);
     gain.gain.linearRampToValueAtTime(peakVol, now + 0.015);
     gain.gain.exponentialRampToValueAtTime(0.0005, now + 1.4);
 
     osc1.connect(gain);
     osc2.connect(gain);
-    gain.connect(this.ctx.destination);
+    gain.connect(this.bgmMasterGain || this.ctx.destination);
 
     osc1.start(now);
     osc2.start(now);
@@ -231,14 +268,14 @@ class SoundEngine {
     osc.type = 'sine';
     osc.frequency.setValueAtTime(freq, now);
 
-    const sustainVol = 0.02 * this.bgmVolume;
+    const sustainVol = 0.08;
     gain.gain.setValueAtTime(0.001, now);
     gain.gain.linearRampToValueAtTime(sustainVol, now + 0.15);
     gain.gain.setValueAtTime(sustainVol, now + duration - 0.15);
     gain.gain.exponentialRampToValueAtTime(0.0005, now + duration + 0.3);
 
     osc.connect(gain);
-    gain.connect(this.ctx.destination);
+    gain.connect(this.bgmMasterGain || this.ctx.destination);
 
     osc.start(now);
     osc.stop(now + duration + 0.3);
@@ -261,6 +298,20 @@ class SoundEngine {
 
   toggleMute() {
     this.muted = !this.muted;
+    this.init();
+
+    const targetBgmGain = this.muted ? 0 : this.bgmVolume;
+    const targetSfxGain = this.muted ? 0 : this.sfxVolume;
+
+    if (this.audioElement) {
+      this.audioElement.volume = targetBgmGain;
+    }
+
+    if (this.ctx && this.bgmMasterGain && this.sfxMasterGain) {
+      this.bgmMasterGain.gain.setTargetAtTime(targetBgmGain, this.ctx.currentTime, 0.02);
+      this.sfxMasterGain.gain.setTargetAtTime(targetSfxGain, this.ctx.currentTime, 0.02);
+    }
+
     try {
       localStorage.setItem('mahjong_muted', this.muted);
     } catch (e) {}
@@ -290,7 +341,7 @@ class SoundEngine {
     gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
 
     osc.connect(gain);
-    gain.connect(this.ctx.destination);
+    gain.connect(this.sfxMasterGain || this.ctx.destination);
 
     osc.start();
     osc.stop(this.ctx.currentTime + 0.04);
@@ -313,7 +364,7 @@ class SoundEngine {
     gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
 
     osc.connect(gain);
-    gain.connect(this.ctx.destination);
+    gain.connect(this.sfxMasterGain || this.ctx.destination);
 
     osc.start();
     osc.stop(this.ctx.currentTime + 0.08);
@@ -339,7 +390,7 @@ class SoundEngine {
       gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.03 + 0.25);
 
       osc.connect(gain);
-      gain.connect(this.ctx.destination);
+      gain.connect(this.sfxMasterGain || this.ctx.destination);
 
       osc.start(now + idx * 0.03);
       osc.stop(now + idx * 0.03 + 0.25);
@@ -366,7 +417,7 @@ class SoundEngine {
       gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.2);
 
       osc.connect(gain);
-      gain.connect(this.ctx.destination);
+      gain.connect(this.sfxMasterGain || this.ctx.destination);
 
       osc.start(now + idx * 0.06);
       osc.stop(now + idx * 0.06 + 0.2);
@@ -392,7 +443,7 @@ class SoundEngine {
       gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.04 + 0.03);
 
       osc.connect(gain);
-      gain.connect(this.ctx.destination);
+      gain.connect(this.sfxMasterGain || this.ctx.destination);
 
       osc.start(now + i * 0.04);
       osc.stop(now + i * 0.04 + 0.03);
@@ -418,7 +469,7 @@ class SoundEngine {
     gongGain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
 
     gongOsc.connect(gongGain);
-    gongGain.connect(this.ctx.destination);
+    gongGain.connect(this.sfxMasterGain || this.ctx.destination);
     gongOsc.start(now);
     gongOsc.stop(now + 1.5);
 
@@ -435,7 +486,7 @@ class SoundEngine {
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1 + idx * 0.08 + 0.4);
 
       osc.connect(gain);
-      gain.connect(this.ctx.destination);
+      gain.connect(this.sfxMasterGain || this.ctx.destination);
 
       osc.start(now + 0.1 + idx * 0.08);
       osc.stop(now + 0.1 + idx * 0.08 + 0.4);
